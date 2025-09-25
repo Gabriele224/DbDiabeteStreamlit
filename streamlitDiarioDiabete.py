@@ -27,7 +27,7 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
-st.title("📔 Diario del Diabete")
+st.title("Diario del Diabete")
 
 # --------------------- SELEZIONE TABELLE ---------------------
 st.write("Ricerca Tabella")
@@ -98,7 +98,7 @@ insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","P
 
 if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
-        glicemia = st.number_input("Glicemia",min_value=40, max_value=1000)
+        glicemia = st.number_input("Glicemia",min_value=30, max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["Colazione","Spuntino1","Pranzo", "Spuntino2","Cena"])
         orario = st.text_input("Orario")
         data = st.date_input("Data")
@@ -123,39 +123,50 @@ elif insert_diario == "Alimento":
         totCho = st.number_input("TotCho",min_value=0,max_value=1000)
         totKcal = st.number_input("TotKcal",min_value=0,max_value=1000)
         insulina = st.number_input("Insulina",min_value=0,max_value=1000)
-
-        db_Pasto["id_pasto"] = db_Pasto["id_pasto"].astype(str)
-        db_Pasto["data"] = db_Pasto["data"].astype(str)
-        opzioni_pasto = db_Pasto["id_pasto"] + " - " + db_Pasto["tipoPasto"] + " (" + db_Pasto["data"] + ")"
-        scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
-        id_raw = scelta.split(" - ")[0]
-        id_pasto_sel = int(float(id_raw))
-
-        # esempio per DiarioPasti
-        if len(db_alimento) == 0:
-            id_alimento = 1
-        else:
-            id_alimento = max(db_alimento["id_alimento"].astype(int)) + 1
-
         invia_alimento = st.form_submit_button("Salva Alimento")
-        if invia_alimento:
-            nuovoAlimento = [id_alimento, nomeAlimento, totPeso, totCho, totKcal, insulina, id_pasto_sel]
-            ws_alimento.append_row(nuovoAlimento)
-            st.success("✅ Nuovo alimento salvato!")
+
+        try:
+            db_Pasto["id_pasto"] = db_Pasto["id_pasto"].astype(str)
+            db_Pasto["data"] = db_Pasto["data"].astype(str)
+            opzioni_pasto = db_Pasto["id_pasto"] + " - " + db_Pasto["tipoPasto"] + " (" + db_Pasto["data"] + ")"
+            scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
+            id_raw = scelta.split(" - ")[0]
+            id_pasto_sel = int(float(id_raw))
+
+            # esempio per DiarioPasti
+            if len(db_alimento) == 0:
+                id_alimento = 1
+            else:
+                id_alimento = max(db_alimento["id_alimento"].astype(int)) + 1
+            
+            
+            if invia_alimento:
+                nuovoAlimento = [id_alimento, nomeAlimento, totPeso, totCho, totKcal, insulina, id_pasto_sel]
+                ws_alimento.append_row(nuovoAlimento)
+                st.success("✅ Nuovo alimento salvato!")
+           
+        except Exception as e:
+            st.error(f"Pasto Mancante.\nAggiungere prima il pasto la tabella è ancora vuota!\n{e}")
 
 elif insert_diario == "PesoPersonale":
     with st.form("form_pesoPersonale"):
-        pesoPersonale = st.number_input("Peso",max_value=100)
-        altezza = st.number_input("Altezza",max_value=100)
+        pesoPersonale = st.number_input("Peso",max_value=100.0)
+        altezza = st.number_input("Altezza",max_value=2.40)
         data = st.date_input("Data")
 
-        massaCorporea= pesoPersonale / (altezza * altezza)
+        try:
+            altezza=float(altezza)
+            massaCorporea= pesoPersonale / (altezza ** 2)
+            st.success(f"Massa Corporea Calcolata:{massaCorporea:.2f}")
+
+        except ZeroDivisionError as e:
+            st.error(f"Impossibile dividere per zero!\n{e}")
 
         if len(db_pesoPersonale) == 0:
             id_peso = 1
         else:
             id_peso = max(db_pesoPersonale["id_peso"].astype(int)) + 1
-            
+
         invia_PesoPersonale = st.form_submit_button("Salva Peso")
         if invia_PesoPersonale:
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
