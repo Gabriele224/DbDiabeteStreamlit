@@ -34,7 +34,8 @@ st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia",
                                                         "TotKcal","Media Peso Corporeo",
-                                                        "Media Massa Corporea"])
+                                                        "Media Massa Corporea",
+                                                        "Lista Alimenti"])
 if st.button("Esegui"):
     if view_diario == "DiarioPasti":
         db_Pasto=({
@@ -119,9 +120,23 @@ if st.button("Esegui"):
 
         except Exception as e:
             st.error(f"Riprovare. Valori della massa corporea non presenti nel db\nInserisci nei pesi e riprova\n{e}")
+    elif view_diario == "Lista Alimenti":
+        
+        listaAlimenti= db_alimento["nomeAlimento"]
+        if listaAlimenti is not db_alimento:
+            db_alimento=({
+                "Alimento": listaAlimenti,
+                "TotPeso": db_alimento["totPeso"],
+                "TotCho": db_alimento["totCho"],
+                "TotKcal": db_alimento["totKcal"],
+                "Insulina": db_alimento["insulina"]
+            })
+        st.dataframe(db_alimento)
 else:
     
     st.error("Riprovare.")
+
+
 # --------------------- INSERIMENTO DATI ---------------------
 st.write("Aggiunta Pasto")
 st.subheader("Aggiungere il Pasto nel Db")
@@ -129,7 +144,7 @@ insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","P
 
 if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
-        glicemia = st.number_input("Glicemia",min_value=30, max_value=1000)
+        glicemia = st.number_input("Glicemia", max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
                                               "DopoSpuntino1","Pranzo","DopoPranzo"
                                               "Spuntino2","DopoSpuntino2","PrimaDiCena",
@@ -148,16 +163,16 @@ if insert_diario == "DiarioPasto":
         if invia:
             nuovoPasto = [id_pasto, glicemia, tipoPasto, orario, data.strftime("%Y-%m-%d"), note]
             ws_pasti.append_row(nuovoPasto)
-            st.success("✅ Nuovo pasto salvato!")
+            st.success(f"✅ Nuovo pasto salvato!\n{nuovoPasto}")
 
 elif insert_diario == "Alimento":
     with st.form("form_alimento"):
         nomeAlimento = st.text_input("Alimento")
-        totPeso = st.number_input("TotPeso",min_value=0.5,max_value=1000.0)
-        totCho = st.number_input("TotCho",min_value=0.5,max_value=1000.0)
-        totKcal = st.number_input("TotKcal",min_value=0.5,max_value=1000.0)
-        insulina = st.number_input("Insulina",min_value=0.5,max_value=1000.0)
-        invia_alimento = st.form_submit_button("Salva Alimento")
+        totPeso = st.number_input("TotPeso",min_value=0.0,max_value=1000.0,format="%.2f")
+        totCho = st.number_input("TotCho",min_value=0.0,max_value=1000.0,format="%.2f")
+        totKcal = st.number_input("TotKcal",min_value=0.0,max_value=1000.0,format="%.2f")
+        insulina = st.number_input("Insulina",min_value=0.0,max_value=1000.0,format="%.2f")
+        
 
         try:
             db_Pasto["id_pasto"] = db_Pasto["id_pasto"].astype(str)
@@ -173,19 +188,19 @@ elif insert_diario == "Alimento":
             else:
                 id_alimento = max(db_alimento["id_alimento"].astype(int)) + 1
             
-            
+            invia_alimento = st.form_submit_button("Salva Alimento")
             if invia_alimento:
                 nuovoAlimento = [id_alimento, nomeAlimento, totPeso, totCho, totKcal, insulina, id_pasto_sel]
                 ws_alimento.append_row(nuovoAlimento)
-                st.success("✅ Nuovo alimento salvato!")
+                st.success(f"✅ Nuovo alimento salvato!\n{nuovoAlimento}")
            
         except Exception as e:
             st.error(f"Pasto Mancante.\nAggiungere prima il pasto la tabella è ancora vuota!\n{e}")
 
 elif insert_diario == "PesoPersonale":
     with st.form("form_pesoPersonale"):
-        pesoPersonale = st.number_input("Peso",max_value=100.0)
-        altezza = st.number_input("Altezza",max_value=2.40)
+        pesoPersonale = st.number_input("Peso",max_value=100.0,format="%.2f")
+        altezza = st.number_input("Altezza",max_value=2.40,format="%.2f")
         data = st.date_input("Data")
 
         try:
@@ -205,4 +220,4 @@ elif insert_diario == "PesoPersonale":
         if invia_PesoPersonale:
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
-            st.success("✅ Nuovo peso salvato!")
+            st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
