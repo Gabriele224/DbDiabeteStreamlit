@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import datetime
 import gspread
 import json
@@ -30,7 +31,10 @@ db_pesoPersonale = ws_to_df(ws_peso)
 st.title("Diario del Diabete")
 
 st.header("Diario Smart")
-view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti", "AlimentoConsumato", "DatiCorporei"])
+view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
+                                                        "DatiCorporei","MediaGlicemia",
+                                                        "TotKcal","Media Peso Corporeo",
+                                                        "Media Massa Corporea"])
 if st.button("Esegui"):
     if view_diario == "DiarioPasti":
         db_Pasto=({
@@ -62,6 +66,59 @@ if st.button("Esegui"):
         })
 
         st.dataframe(db_pesoPersonale)
+    elif view_diario == "MediaGlicemia":
+
+        valori_glicemia= db_Pasto["glicemia"]
+        try:
+            glicemia=np.mean(valori_glicemia)
+            
+            db_valoriGlicemia=({
+                "Media Glicemia": glicemia
+            })
+            st.dataframe(db_valoriGlicemia)
+        except Exception as e:
+            st.error(f"Riprovare. Valori glicemici non presenti nel db\nInserisci nei pasti e riprova\n{e}")
+
+    elif view_diario == "TotKcal":
+
+        valori_Kcal= db_alimento["totKcal"]
+        try:
+            totKcal=sum(valori_Kcal)
+            
+            db_valoreKcal=({
+                "Totale Kcal": totKcal
+            })
+            st.dataframe(db_valoreKcal)
+        except Exception as e:
+            st.error(f"Riprovare. Valori kcal non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
+
+    elif view_diario == "Media Peso Corporeo":
+
+        valori_pesocorporeo= db_pesoPersonale["pesoPersonale"]
+        try:
+            pesiCorporei=np.mean(valori_pesocorporeo)
+            
+            db_valoriPC=({
+                "Media P.C\nPesoCorporeo": pesiCorporei
+            })
+            st.dataframe(db_valoriPC)
+
+        except Exception as e:
+            st.error(f"Riprovare. Valori del peso corporeo non presenti nel db\nInserisci nei pesi e riprova\n{e}")
+    
+    elif view_diario == "Media Massa Corporea":
+
+        valori_MC= db_pesoPersonale["massaCorporea"]
+        try:
+            massaCorporea=np.mean(valori_MC)
+            
+            db_valoriMC=({
+                "Media M.C\nMassaCorporea":  massaCorporea
+            })
+            st.dataframe(db_valoriMC)
+
+        except Exception as e:
+            st.error(f"Riprovare. Valori della massa corporea non presenti nel db\nInserisci nei pesi e riprova\n{e}")
 else:
     
     st.error("Riprovare.")
