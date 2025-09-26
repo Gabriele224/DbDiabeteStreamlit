@@ -31,41 +31,40 @@ st.title("Diario del Diabete")
 
 st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti", "AlimentoConsumato", "DatiCorporei"])
-if view_diario == "DiarioPasti":
-    if db_Pasto.empty:
-        st.info("Nessun pasto registrato.")
-    else:
-        # Ordino per data decrescente
-        db_Pasto = db_Pasto.sort_values("data", ascending=False)
-        for _, row in db_Pasto.iterrows():
-            with st.container():
-                st.subheader(f"{row['data']} - {row['tipoPasto']}")
-                st.write(f"🩸 Glicemia: **{row['glicemia']} mg/dl**")
-                st.write(f"⏰ Orario: {row['orario']}")
-                if row["note"]:
-                    st.write(f"📝 {row['note']}")
-                st.markdown("---")
-elif view_diario == "AlimentoConsumato":
-    if db_alimento.empty:
-        st.info("Nessun alimento registrato.")
-    else:
-        for _, row in db_alimento.iterrows():
-            with st.container():
-                st.subheader(row["nomeAlimento"])
-                st.write(f"Peso: **{row['totPeso']} g**")
-                st.write(f"CHO: {row['totCho']} g")
-                st.write(f"Kcal: {row['totKcal']}")
-                st.write(f"Insulina: {row['insulina']}")
-                st.markdown("---")
+if st.button("Esegui"):
+    if view_diario == "DiarioPasti":
+        db_Pasto=({
+            "Glicemia": db_Pasto["glicemia"],
+            "tipoPasto": db_Pasto["tipoPasto"],
+            "orario": db_Pasto["orario"],
+            "data":db_Pasto["data"],
+            "note": db_Pasto["note"]
+        })
+        st.dataframe(db_Pasto)
 
-elif view_diario == "DatiCorporei":
+    elif view_diario == "AlimentoConsumato":
+        db_alimento=({
+            "Alimento": db_alimento["nomeAlimento"],
+            "TotPeso": db_alimento["totPeso"],
+            "TotCho": db_alimento["totCho"],
+            "TotKcal": db_alimento["totKcal"],
+            "Insulina": db_alimento["insulina"]
+        })
 
-    if db_pesoPersonale.empty:
-        st.info("Nessun peso registrato.")
-    else:
-        db_pesoPersonale = db_pesoPersonale.sort_values("data", ascending=False)
-        for _, row in db_pesoPersonale.iterrows():
-            st.write(f"📅 {row['data']} → {row['pesoPersonale']} kg (BMI: {row['massaCorporea']:.2f})")
+        st.dataframe(db_alimento)
+
+    elif view_diario == "DatiCorporei":
+
+        db_pesoPersonale=({
+            "PesoCorporeo": db_pesoPersonale["pesoPersonale"],
+            "MassaCorporea": db_pesoPersonale["massaCorporea"],
+            "Data": db_pesoPersonale["data"]
+        })
+
+        st.dataframe(db_pesoPersonale)
+else:
+    
+    st.error("Riprovare.")
 # --------------------- INSERIMENTO DATI ---------------------
 st.write("Aggiunta Pasto")
 st.subheader("Aggiungere il Pasto nel Db")
