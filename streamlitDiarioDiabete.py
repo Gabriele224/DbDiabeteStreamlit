@@ -66,13 +66,17 @@ else:
     
     st.error("Riprovare.")
 # --------------------- INSERIMENTO DATI ---------------------
+st.write("Aggiunta Pasto")
 st.subheader("Aggiungere il Pasto nel Db")
 insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","PesoPersonale"])
 
 if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
         glicemia = st.number_input("Glicemia",min_value=30, max_value=1000)
-        tipoPasto = st.selectbox("TipoPasto",["Colazione","Spuntino1","Pranzo", "Spuntino2","Cena"])
+        tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
+                                              "DopoSpuntino1","Pranzo","DopoPranzo"
+                                              "Spuntino2","DopoSpuntino2","PrimaDiCena",
+                                              "Cena","DopoCena","Notte"])
         orario = st.text_input("Orario")
         data = st.date_input("Data")
         note = st.text_input("Note")
@@ -145,4 +149,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success("✅ Nuovo peso salvato!")
-
