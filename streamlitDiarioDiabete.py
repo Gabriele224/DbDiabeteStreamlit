@@ -29,68 +29,43 @@ db_pesoPersonale = ws_to_df(ws_peso)
 
 st.title("Diario del Diabete")
 
-# --------------------- SELEZIONE TABELLE ---------------------
-st.write("Ricerca Tabella")
-select_diario = st.selectbox(
-    "Seleziona tra le seguenti\n",
-    ["DiarioPasti","Alimento","PesoPersonale",
-     "Pasto + Alimento","MediaGlicemia",
-     "AlimentoPeso","SumCho","SumKcal",
-     "Insulina"]
-)
+st.header("Diario Smart")
+view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti", "AlimentoConsumato", "DatiCorporei"])
+if view_diario == "DiarioPasti":
+    if db_Pasto.empty:
+        st.info("Nessun pasto registrato.")
+    else:
+        # Ordino per data decrescente
+        db_Pasto = db_Pasto.sort_values("data", ascending=False)
+        for _, row in db_Pasto.iterrows():
+            with st.container():
+                st.subheader(f"{row['data']} - {row['tipoPasto']}")
+                st.write(f"🩸 Glicemia: **{row['glicemia']} mg/dl**")
+                st.write(f"⏰ Orario: {row['orario']}")
+                if row["note"]:
+                    st.write(f"📝 {row['note']}")
+                st.markdown("---")
+elif view_diario == "AlimentoConsumato":
+    if db_alimento.empty:
+        st.info("Nessun alimento registrato.")
+    else:
+        for _, row in db_alimento.iterrows():
+            with st.container():
+                st.subheader(row["nomeAlimento"])
+                st.write(f"Peso: **{row['totPeso']} g**")
+                st.write(f"CHO: {row['totCho']} g")
+                st.write(f"Kcal: {row['totKcal']}")
+                st.write(f"Insulina: {row['insulina']}")
+                st.markdown("---")
 
-if select_diario == "DiarioPasti":
-    st.dataframe(db_Pasto)
+elif view_diario == "DatiCorporei":
 
-elif select_diario == "Alimento":
-    st.dataframe(db_alimento)
-
-elif select_diario == "PesoPersonale":
-    st.dataframe(db_pesoPersonale)
-
-elif select_diario == "Pasto + Alimento":
-    st.subheader("Vista Tabella Pasto e Alimento")
-
-    df_unione = pd.merge(
-        db_alimento,
-        db_Pasto,
-        left_on="pastoId",
-        right_on="id_pasto",
-        how="left"
-    )
-
-    df_unione["data"] = pd.to_datetime(df_unione["data"], errors='coerce').dt.date
-    data_selezionata = st.date_input("Seleziona una data", value=datetime.date.today())
-    df_filtrato = df_unione[df_unione["data"] == data_selezionata]
-
-    if st.button("Esegui data"):
-        df_unione = df_unione[[
-            "data", "tipoPasto", "glicemia", "nomeAlimento",
-            "totPeso", "totCho", "totKcal", "insulina", "note"
-        ]]
-        st.write(f"📅 Risultati per la data: {data_selezionata}")
-        st.dataframe(df_filtrato)
-
-elif select_diario == "MediaGlicemia":
-    media_glicemia = db_Pasto["glicemia"].mean()
-    st.metric("Media Glicemica", value=f"{media_glicemia:.2f} mg/dl")
-
-elif select_diario == "AlimentoPeso":
-    somma_peso = db_alimento["totPeso"].sum()
-    st.metric("Tot Peso Alimento", value=f"{somma_peso:.2f} kg")
-
-elif select_diario == "SumCho":
-    somma_cho = db_alimento["totCho"].sum()
-    st.metric("Tot Cho Alimento", value=f"{somma_cho:.2f} cho")
-
-elif select_diario == "SumKcal":
-    somma_kcal = db_alimento["totKcal"].sum()
-    st.metric("Tot Kcal Alimento", value=f"{somma_kcal:.2f} kcal")
-
-elif select_diario == "Insulina":
-    somma_Insulina = db_alimento["insulina"].sum()
-    st.metric("Tot Insulina", value=f"{somma_Insulina:.2f} U")
-
+    if db_pesoPersonale.empty:
+        st.info("Nessun peso registrato.")
+    else:
+        db_pesoPersonale = db_pesoPersonale.sort_values("data", ascending=False)
+        for _, row in db_pesoPersonale.iterrows():
+            st.write(f"📅 {row['data']} → {row['pesoPersonale']} kg (BMI: {row['massaCorporea']:.2f})")
 # --------------------- INSERIMENTO DATI ---------------------
 st.write("Aggiunta Pasto")
 st.subheader("Aggiungere il Pasto nel Db")
@@ -119,10 +94,10 @@ if insert_diario == "DiarioPasto":
 elif insert_diario == "Alimento":
     with st.form("form_alimento"):
         nomeAlimento = st.text_input("Alimento")
-        totPeso = st.number_input("TotPeso",min_value=0,max_value=1000)
-        totCho = st.number_input("TotCho",min_value=0,max_value=1000)
-        totKcal = st.number_input("TotKcal",min_value=0,max_value=1000)
-        insulina = st.number_input("Insulina",min_value=0,max_value=1000)
+        totPeso = st.number_input("TotPeso",min_value=0.5,max_value=1000.0)
+        totCho = st.number_input("TotCho",min_value=0.5,max_value=1000.0)
+        totKcal = st.number_input("TotKcal",min_value=0.5,max_value=1000.0)
+        insulina = st.number_input("Insulina",min_value=0.5,max_value=1000.0)
         invia_alimento = st.form_submit_button("Salva Alimento")
 
         try:
