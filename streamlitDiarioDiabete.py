@@ -66,7 +66,6 @@ else:
     
     st.error("Riprovare.")
 # --------------------- INSERIMENTO DATI ---------------------
-st.write("Aggiunta Pasto")
 st.subheader("Aggiungere il Pasto nel Db")
 insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","PesoPersonale"])
 
@@ -146,3 +145,4 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success("✅ Nuovo peso salvato!")
+
