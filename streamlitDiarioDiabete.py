@@ -1,3 +1,4 @@
+from fpdf import FPDF
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -28,6 +29,49 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
+def genera_pdf(db_Pasto, df_alimento, db_daticorporei):
+        pdf = FPDF(orientation="L",unit="mm", format="A4")
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        pdf.cell(200, 10, txt="Report Diario", ln=True, align="C")
+        pdf.ln(10)
+
+        col_width = pdf.w / (len(db_Pasto.columns) + 1)
+
+        # Intestazioni
+        pdf.set_font("Arial", style="B", size=10)
+        for col in db_Pasto.columns:
+            pdf.cell(col_width, 10, col, border=1, align="C")
+        pdf.ln()
+
+        # Righe
+        pdf.set_font("Arial", size=9)
+        for i in range(len(db_Pasto)):
+            for col in db_Pasto.columns:
+                val = str(db_Pasto.iloc[i][col])
+                pdf.cell(col_width, 10, val, border=1, align="C")
+            pdf.ln()
+
+        # Larghezza colonna proporzionale
+        col_width = pdf.w / (len(df_alimento.columns) + 1)
+
+        # Intestazioni
+        pdf.set_font("Arial", style="B", size=10)
+        for col in df_alimento.columns:
+            pdf.cell(col_width, 10, col, border=1, align="C")
+        pdf.ln()
+
+        # Righe
+        pdf.set_font("Arial", size=9)
+        for i in range(len(df_alimento)):
+            for col in df_alimento.columns:
+                val = str(df_alimento.iloc[i][col])
+                pdf.cell(col_width, 10, val, border=1, align="C")
+            pdf.ln()
+
+        return bytes(pdf.output(dest="S"))# ritorna come bytes
+
 st.title("Diario del Diabete")
 
 st.header("Diario Smart")
@@ -35,7 +79,7 @@ view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoC
                                                         "DatiCorporei","MediaGlicemia",
                                                         "TotKcal","TotInsulina",
                                                         "Media Peso Corporeo","Media Massa Corporea",
-                                                        "Lista Alimenti"])
+                                                        "Lista Alimenti","PDF Completo"])
 if st.button("Esegui"):
     if view_diario == "DiarioPasti":
         db_Pasto=({
@@ -165,6 +209,33 @@ if st.button("Esegui"):
                 "Insulina": db_alimento["insulina"]
             })
         st.dataframe(db_alimento)
+    
+    elif view_diario == "PDF Completo":
+
+        db_Pasto=pd.DataFrame(({
+            "Glicemia": db_Pasto.get("glicemia", []),
+            "TipoPasto": db_Pasto.get("tipoPasto", []),
+            "Orario": db_Pasto.get("orario", []),
+            "Data": db_Pasto.get("data", []),
+            "Note": db_Pasto.get("note", [])
+        }))
+        # --- dentro la tua app ---
+        df_alimenti=pd.DataFrame(({
+            "Alimento": db_alimento.get("nomeAlimento", []),
+            "TotPeso": db_alimento.get("totPeso", []),
+            "TotCho": db_alimento.get("totCho", []),
+            "TotKcal": db_alimento.get("totKcal", []),
+            "Insulina": db_alimento.get("insulina", [])
+        }))
+
+        
+        pdf_bytes = genera_pdf(db_Pasto, df_alimenti)
+        st.download_button(
+            label="📄 Scarica PDF",
+            data=pdf_bytes,
+            file_name="gabry23.pdf",
+            mime="application/pdf"
+        )
 else:
     
     st.error("Riprovare.")
