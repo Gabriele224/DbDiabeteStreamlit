@@ -29,7 +29,7 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
-def genera_pdf(db_Pasto, df_alimento):
+def genera_pdf(db_Pasto, df_alimento, db_daticorporei):
         pdf = FPDF(orientation="L",unit="mm", format="A4")
         pdf.add_page()
         pdf.set_font("Arial", size=12)
@@ -77,9 +77,10 @@ st.title("Diario del Diabete")
 st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia",
+                                                        "EmogloGlicata",
                                                         "TotKcal","TotInsulina",
-                                                        "Media Peso Corporeo","Media Massa Corporea",
-                                                        "Lista Alimenti","PDF Completo"])
+                                                        "Lista Alimenti","Media DCorporei",
+                                                        "PDF Completo"])
 if st.button("Esegui"):
     if view_diario == "DiarioPasti":
         db_Pasto=({
@@ -121,6 +122,21 @@ if st.button("Esegui"):
                 "Media Glicemia": glicemia
             })
             st.dataframe(db_valoriGlicemia)
+        except Exception as e:
+            st.error(f"Riprovare. Valori glicemici non presenti nel db\nInserisci nei pasti e riprova\n{e}")
+
+    elif view_diario == "EmogloGlicata":
+
+        valori_glicemia= db_Pasto["glicemia"]
+        try:
+            mediaGlicemia= np.mean(valori_glicemia)
+            emogloglicata= (mediaGlicemia + 47.6) / 27.6
+            
+            db_EmogloGlicata=({
+                "Media Glicemia": mediaGlicemia,
+                "EmoglobiGlicata": emogloglicata
+            })
+            st.dataframe(db_EmogloGlicata)
         except Exception as e:
             st.error(f"Riprovare. Valori glicemici non presenti nel db\nInserisci nei pasti e riprova\n{e}")
 
@@ -170,33 +186,6 @@ if st.button("Esegui"):
         except Exception as e:
             st.error(f"Riprovare. Valori Insulina non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
 
-    elif view_diario == "Media Peso Corporeo":
-
-        valori_pesocorporeo= db_pesoPersonale["pesoPersonale"]
-        try:
-            pesiCorporei=np.mean(valori_pesocorporeo)
-            
-            db_valoriPC=({
-                "Media P.C\nPesoCorporeo": pesiCorporei
-            })
-            st.dataframe(db_valoriPC)
-
-        except Exception as e:
-            st.error(f"Riprovare. Valori del peso corporeo non presenti nel db\nInserisci nei pesi e riprova\n{e}")
-    
-    elif view_diario == "Media Massa Corporea":
-
-        valori_MC= db_pesoPersonale["massaCorporea"]
-        try:
-            massaCorporea=np.mean(valori_MC)
-            
-            db_valoriMC=({
-                "Media M.C\nMassaCorporea":  massaCorporea
-            })
-            st.dataframe(db_valoriMC)
-
-        except Exception as e:
-            st.error(f"Riprovare. Valori della massa corporea non presenti nel db\nInserisci nei pesi e riprova\n{e}")
     elif view_diario == "Lista Alimenti":
         
         listaAlimenti= db_alimento["nomeAlimento"]
@@ -205,11 +194,30 @@ if st.button("Esegui"):
                 "Alimento": listaAlimenti,
                 "TotPeso": db_alimento["totPeso"],
                 "TotCho": db_alimento["totCho"],
-                "TotKcal": db_alimento["totKcal"],
-                "Insulina": db_alimento["insulina"]
+                "TotKcal": db_alimento["totKcal"]
             })
         st.dataframe(db_alimento)
-    
+
+    elif view_diario == "Media DCorporei":
+
+        valori_pesocorporeo= db_pesoPersonale["pesoPersonale"]
+
+        valori_MC= db_pesoPersonale["massaCorporea"]
+
+        try:
+            pesiCorporei=np.mean(valori_pesocorporeo)
+            
+            massaCorporea=np.mean(valori_MC)
+
+            db_valoriPC=({
+                "Media P.C\nPesoCorporeo": pesiCorporei,
+                "Media M.C\nMassaCorporea":  massaCorporea
+            })
+            st.dataframe(db_valoriPC)
+
+        except Exception as e:
+            st.error(f"Riprovare. Valori del peso e massa corporea non presenti nel db\nInserisci nei pesi e riprova\n{e}")
+     
     elif view_diario == "PDF Completo":
 
         db_Pasto=pd.DataFrame(({
@@ -242,7 +250,7 @@ else:
 
 
 # --------------------- INSERIMENTO DATI ---------------------
-st.write("Aggiunta Pasto")
+
 st.subheader("Aggiungere il Pasto nel Db")
 insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","PesoPersonale"])
 
@@ -325,4 +333,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
-
