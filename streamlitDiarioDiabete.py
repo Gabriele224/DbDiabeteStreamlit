@@ -29,7 +29,7 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
-def genera_pdf(db_Pasto, df_alimento, db_daticorporei):
+def genera_pdf(db_Pasto, df_alimento):
         pdf = FPDF(orientation="L",unit="mm", format="A4")
         pdf.add_page()
         pdf.set_font("Arial", size=12)
@@ -220,6 +220,9 @@ if st.button("Esegui"):
      
     elif view_diario == "PDF Completo":
 
+        username= st.selectbox("Username\n", [
+                                                "Gabry23","Clarissa05"
+                                                ])
         db_Pasto=pd.DataFrame(({
             "Glicemia": db_Pasto.get("glicemia", []),
             "TipoPasto": db_Pasto.get("tipoPasto", []),
@@ -241,7 +244,7 @@ if st.button("Esegui"):
         st.download_button(
             label="📄 Scarica PDF",
             data=pdf_bytes,
-            file_name="gabry23.pdf",
+            file_name=f"{username}.pdf",
             mime="application/pdf"
         )
 else:
