@@ -29,7 +29,7 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
-def genera_pdf(db_Pasto, df_alimento, db_daticorporei):
+def genera_pdf(db_Pasto, df_alimento):
         pdf = FPDF(orientation="L",unit="mm", format="A4")
         pdf.add_page()
         pdf.set_font("Arial", size=12)
@@ -325,3 +325,4 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
