@@ -33,8 +33,8 @@ st.title("Diario del Diabete")
 st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia",
-                                                        "TotKcal","Media Peso Corporeo",
-                                                        "Media Massa Corporea",
+                                                        "TotKcal","TotInsulina",
+                                                        "Media Peso Corporeo","Media Massa Corporea",
                                                         "Lista Alimenti"])
 if st.button("Esegui"):
     if view_diario == "DiarioPasti":
@@ -84,14 +84,47 @@ if st.button("Esegui"):
 
         valori_Kcal= db_alimento["totKcal"]
         try:
-            totKcal=sum(valori_Kcal)
+            
+            # Converto sempre tutto in float, scartando ciò che non si può convertire
+            valori_Kcal_float = []
+            for v in valori_Kcal:
+                try:
+                    valori_Kcal_float.append(float(v))
+                except (ValueError, TypeError):
+                    # ignora stringhe vuote, None o cose non numeriche
+                    continue
+            
+            totKcal=float(sum(valori_Kcal_float))
             
             db_valoreKcal=({
-                "Totale Kcal": totKcal
+                "Totale Kcal": [totKcal]
             })
             st.dataframe(db_valoreKcal)
         except Exception as e:
             st.error(f"Riprovare. Valori kcal non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
+
+    elif view_diario == "TotInsulina":
+
+        valori_insulina= db_alimento["insulina"]
+        try:
+            
+            # Converto sempre tutto in float, scartando ciò che non si può convertire
+            valori_insulina_float = []
+            for v in valori_insulina:
+                try:
+                    valori_insulina_float.append(float(v))
+                except (ValueError, TypeError):
+                    # ignora stringhe vuote, None o cose non numeriche
+                    continue
+            
+            totinsulina=float(sum(valori_insulina_float))
+            
+            db_valoreInsulina=({
+                "Totale Insulina": [totinsulina]
+            })
+            st.dataframe(db_valoreInsulina)
+        except Exception as e:
+            st.error(f"Riprovare. Valori Insulina non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
 
     elif view_diario == "Media Peso Corporeo":
 
@@ -146,7 +179,7 @@ if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
         glicemia = st.number_input("Glicemia", max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
-                                              "DopoSpuntino1","Pranzo","DopoPranzo",
+                                              "DopoSpuntino1","Pranzo","DopoPranzo"
                                               "Spuntino2","DopoSpuntino2","PrimaDiCena",
                                               "Cena","DopoCena","Notte"])
         orario = st.text_input("Orario")
@@ -221,4 +254,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
-
