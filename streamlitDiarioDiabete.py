@@ -13,7 +13,7 @@ gc = gspread.service_account_from_dict(sa_info)
 # 📒 Apri i 3 fogli separati
 SPREADSHEET_ID_PASTI = "1ntm0KHnKr1-314PXXL3-sRhdkFXjtwjg4QY9k4Kkl78"              # <--- sostituisci con ID foglio DiarioPasti
 SPREADSHEET_ID_ALIMENTO = "1yWr0_ZL8ke1S7QTBsr6hKTw6VLGxXyo8IdzaNYpraYc"     # <--- sostituisci con ID foglio AlimentoConsumato
-SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio PesoPersonale
+SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio DatiCorporei
 
 ws_pasti = gc.open_by_key(SPREADSHEET_ID_PASTI).sheet1
 ws_alimento = gc.open_by_key(SPREADSHEET_ID_ALIMENTO).sheet1
@@ -81,7 +81,7 @@ view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoC
                                                         "TotKcal","TotInsulina",
                                                         "Lista Alimenti","Media DCorporei",
                                                         "PDF Completo"])
-if st.button("Esegui"):
+if st.button("Esegui Ricerca"):
     if view_diario == "DiarioPasti":
         db_Pasto=({
             "Glicemia": db_Pasto["glicemia"],
