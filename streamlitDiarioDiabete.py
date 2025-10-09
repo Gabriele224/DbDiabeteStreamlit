@@ -261,7 +261,7 @@ if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
         glicemia = st.number_input("Glicemia", max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
-                                              "DopoSpuntino1","Pranzo","DopoPranzo"
+                                              "DopoSpuntino1","Pranzo","DopoPranzo",
                                               "Spuntino2","DopoSpuntino2","PrimaDiCena",
                                               "Cena","DopoCena","Notte"])
         orario = st.text_input("Orario")
@@ -336,3 +336,4 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
