@@ -29,48 +29,33 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 
-def genera_pdf(db_Pasto, df_alimento):
-        pdf = FPDF(orientation="L",unit="mm", format="A4")
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
+def genera_pdf(df_combined):
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
 
-        pdf.cell(200, 10, txt="Report Diario", ln=True, align="C")
-        pdf.ln(10)
+    pdf.cell(200, 10, txt="Report Diario", ln=True, align="C")
+    pdf.ln(10)
 
-        col_width = pdf.w / (len(db_Pasto.columns) + 1)
+    col_width = pdf.w / (len(df_combined.columns) + 1)
 
-        # Intestazioni
-        pdf.set_font("Arial", style="B", size=10)
-        for col in db_Pasto.columns:
-            pdf.cell(col_width, 10, col, border=1, align="C")
+    # Intestazioni
+    pdf.set_font("Arial", style="B", size=10)
+    for col in df_combined.columns:
+        pdf.cell(col_width, 10, str(col), border=1, align="C")
+    pdf.ln()
+
+    # Righe
+    pdf.set_font("Arial", size=9)
+    for i in range(len(df_combined)):
+        for col in df_combined.columns:
+            val = str(df_combined.iloc[i][col])
+            pdf.cell(col_width, 10, val, border=1, align="C")
         pdf.ln()
 
-        # Righe
-        pdf.set_font("Arial", size=9)
-        for i in range(len(db_Pasto)):
-            for col in db_Pasto.columns:
-                val = str(db_Pasto.iloc[i][col])
-                pdf.cell(col_width, 10, val, border=1, align="C")
-            pdf.ln()
+    return bytes(pdf.output(dest="S"))
 
-        # Larghezza colonna proporzionale
-        col_width = pdf.w / (len(df_alimento.columns) + 1)
 
-        # Intestazioni
-        pdf.set_font("Arial", style="B", size=10)
-        for col in df_alimento.columns:
-            pdf.cell(col_width, 10, col, border=1, align="C")
-        pdf.ln()
-
-        # Righe
-        pdf.set_font("Arial", size=9)
-        for i in range(len(df_alimento)):
-            for col in df_alimento.columns:
-                val = str(df_alimento.iloc[i][col])
-                pdf.cell(col_width, 10, val, border=1, align="C")
-            pdf.ln()
-
-        return bytes(pdf.output(dest="S"))# ritorna come bytes
 
 st.title("Diario del Diabete")
 
@@ -221,32 +206,32 @@ if st.button("Esegui Ricerca"):
     elif view_diario == "PDF Completo":
 
         username= st.selectbox("Username\n", [
-                                                "Gabry23","Clarissa05"
+                                                "Gabry23"
                                                 ])
-        db_Pasto=pd.DataFrame(({
-            "Glicemia": db_Pasto.get("glicemia", []),
-            "TipoPasto": db_Pasto.get("tipoPasto", []),
-            "Orario": db_Pasto.get("orario", []),
-            "Data": db_Pasto.get("data", []),
-            "Note": db_Pasto.get("note", [])
-        }))
-        # --- dentro la tua app ---
-        df_alimenti=pd.DataFrame(({
-            "Alimento": db_alimento.get("nomeAlimento", []),
-            "TotPeso": db_alimento.get("totPeso", []),
-            "TotCho": db_alimento.get("totCho", []),
-            "TotKcal": db_alimento.get("totKcal", []),
-            "Insulina": db_alimento.get("insulina", [])
-        }))
+        # Controlliamo che le colonne chiave esistano
+    if "id_pasto" not in db_Pasto.columns:
+        st.warning("⚠️ La tabella 'DiarioPasti' non contiene 'id_pasto'. Controlla il Google Sheet.")
+    if "id_pasto_sel" not in db_alimento.columns:
+        st.warning("⚠️ La tabella 'AlimentoConsumato' non contiene 'id_pasto_sel'. Controlla il Google Sheet.")
 
-        
-        pdf_bytes = genera_pdf(db_Pasto, df_alimenti)
-        st.download_button(
-            label="📄 Scarica PDF",
-            data=pdf_bytes,
-            file_name=f"{username}.pdf",
-            mime="application/pdf"
-        )
+    # Rinomina id_pasto_sel → id_pasto per la join
+    if "id_pasto_sel" in db_alimento.columns:
+        db_alimento = db_alimento.rename(columns={"id_pasto_sel": "id_pasto"})
+
+    # Esegui join tra DiarioPasti e AlimentoConsumato
+    try:
+        df_combined = pd.merge(db_Pasto, db_alimento, on="id_pasto", how="outer")
+    except Exception as e:
+        st.error(f"❌ Errore nella join: {e}")
+        st.stop()
+
+    pdf_bytes = genera_pdf(df_combined)
+    st.download_button(
+        label="📄 Scarica PDF",
+        data=pdf_bytes,
+        file_name=f"{username}.pdf",
+        mime="application/pdf"
+    )
 else:
     
     st.error("Riprovare.")
@@ -261,7 +246,7 @@ if insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
         glicemia = st.number_input("Glicemia", max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
-                                              "DopoSpuntino1","Pranzo","DopoPranzo",
+                                              "DopoSpuntino1","Pranzo","DopoPranzo"
                                               "Spuntino2","DopoSpuntino2","PrimaDiCena",
                                               "Cena","DopoCena","Notte"])
         orario = st.text_input("Orario")
@@ -336,4 +321,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
-
