@@ -63,7 +63,7 @@ st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia",
                                                         "EmogloGlicata",
-                                                        "TotKcal","TotInsulina",
+                                                        "TotKcal","TotCho","TotInsulina",
                                                         "Lista Alimenti","Media DCorporei",
                                                         "PDF Completo"])
 if st.button("Esegui Ricerca"):
@@ -147,6 +147,29 @@ if st.button("Esegui Ricerca"):
             st.dataframe(db_valoreKcal)
         except Exception as e:
             st.error(f"Riprovare. Valori kcal non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
+
+    elif view_diario == "TotCho":
+
+        valori_cho= db_alimento["totCho"]
+        try:
+            
+            # Converto sempre tutto in float, scartando ciò che non si può convertire
+            valori_cho_float = []
+            for v in valori_cho:
+                try:
+                    valori_cho_float.append(float(v))
+                except (ValueError, TypeError):
+                    # ignora stringhe vuote, None o cose non numeriche
+                    continue
+            
+            totcho=float(sum(valori_cho_float))
+            
+            db_valorecho=({
+                "Totale Cho": [totcho]
+            })
+            st.dataframe(db_valorecho)
+        except Exception as e:
+            st.error(f"Riprovare. Valori Cho non presenti nel db\nInserisci nei alimenti e riprova\n{e}")
 
     elif view_diario == "TotInsulina":
 
@@ -321,4 +344,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
-
