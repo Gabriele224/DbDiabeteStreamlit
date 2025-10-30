@@ -290,8 +290,8 @@ if insert_diario == "UtenteCentro":
 
         try:
 
-            invia = st.form_submit_button("Salva Utente")
-            if invia:
+            invia_utente = st.form_submit_button("Salva Utente")
+            if invia_utente:
                 nuovoUtente = [username, NomeUtente, CognomeUtente, dataNascita.strftime("%Y-%m-%d"), CittaUtente, CfUtente, CentroDiabetologico]
                 ws_utente.append_row(nuovoUtente)
                 st.success(f"✅ Nuovo Utente salvato!\n{nuovoUtente}")
@@ -378,3 +378,4 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
