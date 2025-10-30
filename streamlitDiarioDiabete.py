@@ -378,5 +378,3 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
-
-
