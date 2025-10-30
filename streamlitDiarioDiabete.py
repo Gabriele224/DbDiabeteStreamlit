@@ -10,10 +10,12 @@ sa_info = json.loads(st.secrets["gcp_service_account"])
 gc = gspread.service_account_from_dict(sa_info)
 
 # 📒 Apri i 3 fogli separati
+SPREADSHEET_ID_UTENTE="1M2bQ9bHz9zBmeF61frL_26GbuKuWKZM9Hx3DdVk7_IY"    # <--- sostituisci con ID foglio UtenteCentro
 SPREADSHEET_ID_PASTI = "1ntm0KHnKr1-314PXXL3-sRhdkFXjtwjg4QY9k4Kkl78"              # <--- sostituisci con ID foglio DiarioPasti
 SPREADSHEET_ID_ALIMENTO = "1yWr0_ZL8ke1S7QTBsr6hKTw6VLGxXyo8IdzaNYpraYc"     # <--- sostituisci con ID foglio AlimentoConsumato
 SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio DatiCorporei
 
+ws_utente= gc.open_by_key(SPREADSHEET_ID_UTENTE).sheet1
 ws_pasti = gc.open_by_key(SPREADSHEET_ID_PASTI).sheet1
 ws_alimento = gc.open_by_key(SPREADSHEET_ID_ALIMENTO).sheet1
 ws_peso = gc.open_by_key(SPREADSHEET_ID_PESO).sheet1
@@ -27,6 +29,7 @@ def ws_to_df(ws):
 db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
+db_utente= ws_to_df(ws_utente)
 
 def genera_pdf(df_combined):
     pdf = FPDF(orientation="L", unit="mm", format="A4")
@@ -58,14 +61,25 @@ def genera_pdf(df_combined):
 
 st.title("Diario del Diabete")
 
-view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
-                                                        "DatiCorporei","MediaGlicemia",
-                                                        "EmogloGlicata",
-                                                        "TotKcal","TotCho","TotInsulina",
-                                                        "Lista Alimenti","Media DCorporei",
-                                                        "PDF Completo"])
+view_diario= st.selectbox("Scegli cosa Visualizzare\n",["UtenteCentro","DiarioPasti","AlimentoConsumato",
+                                                        "DatiCorporei","MediaGlicemia","EmogloGlicata",
+                                                        "TotKcal","TotCho","TotInsulina","Lista Alimenti",
+                                                        "Media DCorporei","PDF Completo"])
 if st.button("Esegui Ricerca"):
-    if view_diario == "DiarioPasti":
+    if view_diario=="UtenteCentro":
+
+        db_utente=({
+            "Username": db_utente["Username"],
+            "Nome": db_Pasto["NomeUtente"],
+            "Cognome": db_Pasto["CognomeUtente"],
+            "Data":db_Pasto["dataNascita"],
+            "Citta": db_Pasto["CittaUtente"],
+            "CfUtente":db_Pasto["CfUtente"],
+            "Centro": db_Pasto["CentroDiabetologico"]
+        })
+        st.dataframe(db_utente)
+        
+    elif view_diario == "DiarioPasti":
         db_Pasto=({
             "Glicemia": db_Pasto["glicemia"],
             "tipoPasto": db_Pasto["tipoPasto"],
@@ -261,9 +275,31 @@ else:
 # --------------------- INSERIMENTO DATI ---------------------
 
 st.subheader("Aggiungere Le Informazioni nel Db")
-insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","PesoPersonale"])
+insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale"])
 
-if insert_diario == "DiarioPasto":
+if insert_diario == "UtenteCentro":
+
+    with st.form("form_utente"):
+        username = st.text_input("Username")
+        NomeUtente = st.text_input("NomeUtente")
+        CognomeUtente = st.text_input("Cognome")
+        dataNascita = st.date_input("Data")
+        CittaUtente= st.text_input("CittaUtente")
+        CfUtente= st.text_input("CfUtente")
+        CentroDiabetologico= st.text_input("CentroDiabetologico")
+
+        try:
+
+            invia = st.form_submit_button("Salva Utente")
+            if invia:
+                nuovoUtente = [username, NomeUtente, CognomeUtente, dataNascita.strftime("%Y-%m-%d"), CittaUtente, CfUtente, CentroDiabetologico]
+                ws_utente.append_row(nuovoUtente)
+                st.success(f"✅ Nuovo Utente salvato!\n{nuovoUtente}")
+           
+        except Exception as e:
+            st.error(f"Utente Mancante.\nAggiungere prima l'utente la tabella è ancora vuota!\n{e}")
+
+elif insert_diario == "DiarioPasto":
     with st.form("form_pasto"):
         glicemia = st.number_input("Glicemia", max_value=1000)
         tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
