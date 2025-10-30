@@ -2,7 +2,6 @@ from fpdf import FPDF
 import streamlit as st
 import pandas as pd
 import numpy as np
-import datetime
 import gspread
 import json
 
@@ -59,7 +58,6 @@ def genera_pdf(df_combined):
 
 st.title("Diario del Diabete")
 
-st.header("Diario Smart")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia",
                                                         "EmogloGlicata",
@@ -262,7 +260,7 @@ else:
 
 # --------------------- INSERIMENTO DATI ---------------------
 
-st.subheader("Aggiungere il Pasto nel Db")
+st.subheader("Aggiungere Le Informazioni nel Db")
 insert_diario = st.selectbox("Inserimento nel Db\n",["DiarioPasto","Alimento","PesoPersonale"])
 
 if insert_diario == "DiarioPasto":
