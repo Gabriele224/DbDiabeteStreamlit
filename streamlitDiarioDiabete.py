@@ -240,33 +240,30 @@ if st.button("Esegui Ricerca"):
      
     elif view_diario == "PDF Completo":
 
-        username= st.selectbox("Username\n", [
-                                                "Gabry23"
-                                                ])
         # Controlliamo che le colonne chiave esistano
-    if "id_pasto" not in db_Pasto.columns:
-        st.warning("⚠️ La tabella 'DiarioPasti' non contiene 'id_pasto'. Controlla il Google Sheet.")
-    if "id_pasto_sel" not in db_alimento.columns:
-        st.warning("⚠️ La tabella 'AlimentoConsumato' non contiene 'id_pasto_sel'. Controlla il Google Sheet.")
-
-    # Rinomina id_pasto_sel → id_pasto per la join
-    if "id_pasto_sel" in db_alimento.columns:
-        db_alimento = db_alimento.rename(columns={"id_pasto_sel": "id_pasto"})
-
-    # Esegui join tra DiarioPasti e AlimentoConsumato
-    try:
-        df_combined = pd.merge(db_Pasto, db_alimento, on="id_pasto", how="outer")
-    except Exception as e:
-        st.error(f"❌ Errore nella join: {e}")
-        st.stop()
-
-    pdf_bytes = genera_pdf(df_combined)
-    st.download_button(
-        label="📄 Scarica PDF",
-        data=pdf_bytes,
-        file_name=f"dashboard.pdf",
-        mime="application/pdf"
-    )
+        if "id_pasto" not in db_Pasto.columns:
+            st.warning("⚠️ La tabella 'DiarioPasti' non contiene 'id_pasto'. Controlla il Google Sheet.")
+        if "id_pasto_sel" not in db_alimento.columns:
+            st.warning("⚠️ La tabella 'AlimentoConsumato' non contiene 'id_pasto_sel'. Controlla il Google Sheet.")
+    
+        # Rinomina id_pasto_sel → id_pasto per la join
+        if "id_pasto_sel" in db_alimento.columns:
+            db_alimento = db_alimento.rename(columns={"id_pasto_sel": "id_pasto"})
+    
+        # Esegui join tra DiarioPasti e AlimentoConsumato
+        try:
+            df_combined = pd.merge(db_Pasto, db_alimento, on="id_pasto", how="outer")
+        except Exception as e:
+            st.error(f"❌ Errore nella join: {e}")
+            st.stop()
+    
+        pdf_bytes = genera_pdf(df_combined)
+        st.download_button(
+            label="📄 Scarica PDF",
+            data=pdf_bytes,
+            file_name=f"dashboard.pdf",
+            mime="application/pdf"
+        )
 else:
     
     st.error("Riprovare.")
@@ -378,6 +375,7 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
 
 
 
