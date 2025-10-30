@@ -379,3 +379,4 @@ elif insert_diario == "PesoPersonale":
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
 
+
