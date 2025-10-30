@@ -264,7 +264,7 @@ if st.button("Esegui Ricerca"):
     st.download_button(
         label="📄 Scarica PDF",
         data=pdf_bytes,
-        file_name=f"{username}.pdf",
+        file_name=f"dashboard.pdf",
         mime="application/pdf"
     )
 else:
@@ -378,5 +378,6 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
 
 
