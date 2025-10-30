@@ -70,12 +70,12 @@ if st.button("Esegui Ricerca"):
 
         db_utente=({
             "Username": db_utente["username"],
-            "Nome": db_Pasto["NomeUtente"],
-            "Cognome": db_Pasto["CognomeUtente"],
-            "Data":db_Pasto["dataNascita"],
-            "Citta": db_Pasto["CittaUtente"],
-            "CfUtente":db_Pasto["CfUtente"],
-            "Centro": db_Pasto["CentroDiabetologico"]
+            "Nome": db_utente["NomeUtente"],
+            "Cognome": db_utente["CognomeUtente"],
+            "Data":db_utente["dataNascita"],
+            "Citta": db_utente["CittaUtente"],
+            "CfUtente":db_utente["CfUtente"],
+            "Centro": db_utente["CentroDiabetologico"]
         })
         st.dataframe(db_utente)
         
@@ -378,4 +378,5 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
 
