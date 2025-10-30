@@ -69,7 +69,7 @@ if st.button("Esegui Ricerca"):
     if view_diario=="UtenteCentro":
 
         db_utente=({
-            "Username": db_utente["Username"],
+            "Username": db_utente["username"],
             "Nome": db_Pasto["NomeUtente"],
             "Cognome": db_Pasto["CognomeUtente"],
             "Data":db_Pasto["dataNascita"],
@@ -378,3 +378,4 @@ elif insert_diario == "PesoPersonale":
             nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
