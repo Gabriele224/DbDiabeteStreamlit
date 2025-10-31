@@ -20,7 +20,7 @@ ws_utente= gc.open_by_key(SPREADSHEET_ID_UTENTE).sheet1
 ws_pasti = gc.open_by_key(SPREADSHEET_ID_PASTI).sheet1
 ws_alimento = gc.open_by_key(SPREADSHEET_ID_ALIMENTO).sheet1
 ws_peso = gc.open_by_key(SPREADSHEET_ID_PESO).sheet1
-ws_healtsmart= gc.open_by_key(SPREADSHEET_ID_HEALTHSMART).sheet1
+ws_healthsmart= gc.open_by_key(SPREADSHEET_ID_HEALTHSMART).sheet1
 
 # Funzione helper per leggere worksheet → DataFrame
 def ws_to_df(ws):
@@ -421,4 +421,5 @@ elif insert_diario == "HealthSmart":
             nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
             ws_healthsmart.append_row(nuovoHealth)
             st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+
 
