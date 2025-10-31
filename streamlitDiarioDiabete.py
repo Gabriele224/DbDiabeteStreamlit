@@ -419,5 +419,6 @@ elif insert_diario == "HealthSmart":
         invia_healthsmart = st.form_submit_button("Salva Health")
         if invia_healthsmart:
             nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
-            ws_pasti.append_row(nuovoHealth)
+            ws_healthsmart.append_row(nuovoHealth)
             st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+
