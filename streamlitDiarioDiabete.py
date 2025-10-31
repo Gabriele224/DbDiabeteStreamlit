@@ -32,7 +32,7 @@ db_utente= ws_to_df(ws_utente)
 db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
-db_healthsmart= ws_to_df(ws_healtsmart)
+db_healthsmart= ws_to_df(ws_healthsmart)
 
 def genera_pdf(df_combined):
     pdf = FPDF(orientation="L", unit="mm", format="A4")
@@ -421,5 +421,6 @@ elif insert_diario == "HealthSmart":
             nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
             ws_healthsmart.append_row(nuovoHealth)
             st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+
 
 
