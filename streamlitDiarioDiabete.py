@@ -14,11 +14,13 @@ SPREADSHEET_ID_UTENTE="1M2bQ9bHz9zBmeF61frL_26GbuKuWKZM9Hx3DdVk7_IY"    # <--- s
 SPREADSHEET_ID_PASTI = "1ntm0KHnKr1-314PXXL3-sRhdkFXjtwjg4QY9k4Kkl78"              # <--- sostituisci con ID foglio DiarioPasti
 SPREADSHEET_ID_ALIMENTO = "1yWr0_ZL8ke1S7QTBsr6hKTw6VLGxXyo8IdzaNYpraYc"     # <--- sostituisci con ID foglio AlimentoConsumato
 SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio DatiCorporei
+SPREADSHEET_ID_HEALTHSMART= "1N0sdRsoC-EB5hYBfjjQ0Qil59j1LJ56R8B_wjTJ1SHU"  # ID foglio HealthSmart
 
 ws_utente= gc.open_by_key(SPREADSHEET_ID_UTENTE).sheet1
 ws_pasti = gc.open_by_key(SPREADSHEET_ID_PASTI).sheet1
 ws_alimento = gc.open_by_key(SPREADSHEET_ID_ALIMENTO).sheet1
 ws_peso = gc.open_by_key(SPREADSHEET_ID_PESO).sheet1
+ws_healtsmart= gc.open_by_key(SPREADSHEET_ID_HEALTHSMART).sheet1
 
 # Funzione helper per leggere worksheet → DataFrame
 def ws_to_df(ws):
@@ -26,10 +28,11 @@ def ws_to_df(ws):
     return pd.DataFrame(data)
 
 # Carica dati iniziali
+db_utente= ws_to_df(ws_utente)
 db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
-db_utente= ws_to_df(ws_utente)
+db_healthsmart= ws_to_df(ws_healtsmart)
 
 def genera_pdf(df_combined):
     pdf = FPDF(orientation="L", unit="mm", format="A4")
@@ -64,7 +67,7 @@ st.title("Diario del Diabete")
 view_diario= st.selectbox("Scegli cosa Visualizzare\n",["UtenteCentro","DiarioPasti","AlimentoConsumato",
                                                         "DatiCorporei","MediaGlicemia","EmogloGlicata",
                                                         "TotKcal","TotCho","TotInsulina","Lista Alimenti",
-                                                        "Media DCorporei","PDF Completo"])
+                                                        "Media DCorporei","HealthSmart","PDF Completo"])
 if st.button("Esegui Ricerca"):
     if view_diario=="UtenteCentro":
 
@@ -237,6 +240,26 @@ if st.button("Esegui Ricerca"):
 
         except Exception as e:
             st.error(f"Riprovare. Valori del peso e massa corporea non presenti nel db\nInserisci nei pesi e riprova\n{e}")
+    
+    elif view_diario == "HealthSmart":
+
+        valori_health= db_healthsmart["health"]
+
+        valori_oxygen= db_healthsmart["oxygen"]
+
+        try:
+            health=np.mean(valori_health)
+            
+            oxygen=np.mean(valori_oxygen)
+
+            db_valoriho=({
+                "Media Health": health,
+                "Media Oxygen":  oxygen
+            })
+            st.dataframe(db_valoriho)
+
+        except Exception as e:
+            st.error(f"Riprovare. Valori del cuore eossugeno non presenti nel db\nInserisci e riprova\n{e}")
      
     elif view_diario == "PDF Completo":
 
@@ -272,7 +295,7 @@ else:
 # --------------------- INSERIMENTO DATI ---------------------
 
 st.subheader("Aggiungere Le Informazioni nel Db")
-insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale"])
+insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale","HealthSmart"])
 
 if insert_diario == "UtenteCentro":
 
@@ -376,6 +399,25 @@ elif insert_diario == "PesoPersonale":
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
 
+elif insert_diario == "HealthSmart":
+    with st.form("form_healthsmart"):
+        
+        ora = st.text_input("Orario")
+        data = st.date_input("Data")
+        health = st.number_input("Cuore")
+        oxygen= st.number_input("Ossigeno")
+        stress= st.text_input("Stress")
+        note = st.text_input("Note")
+        username=st.text_input("Username")
 
+        # esempio per DiarioPasti
+        if len(db_healthsmart) == 0:
+            id_health = 1
+        else:
+            id_health = max(db_healthsmart["id_health"].astype(int)) + 1
 
-
+        invia_healthsmart = st.form_submit_button("Salva Health")
+        if invia_healthsmart:
+            nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
+            ws_pasti.append_row(nuovoHealth)
+            st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
