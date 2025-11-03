@@ -248,18 +248,36 @@ if st.button("Esegui Ricerca"):
         valori_oxygen= db_healthsmart["oxygen"]
 
         try:
-            health=np.mean(valori_health)
             
-            oxygen=np.mean(valori_oxygen)
+            # Converto sempre tutto in float, scartando ciò che non si può convertire
+            valori_health_float = []
+            valori_oxygen_float=[]
+            for v in valori_health:
+                try:
+                    valori_health_float.append(float(v))
+                except (ValueError, TypeError):
+                    # ignora stringhe vuote, None o cose non numeriche
+                    continue
 
-            db_valoriho=({
-                "Media Health": health,
-                "Media Oxygen":  oxygen
+            tothealth=float(np.mean(valori_health_float))
+
+
+            for v in valori_oxygen:
+                try:
+                    valori_oxygen_float.append(float(v))
+                except (ValueError, TypeError):
+                    # ignora stringhe vuote, None o cose non numeriche
+                    continue
+
+            totoxygen=float(np.mean(valori_oxygen_float))
+
+            db_valorehealth=({
+                "Media Cuore": [tothealth],
+                "Media Ossigeno": [totoxygen]
             })
-            st.dataframe(db_valoriho)
-
+            st.dataframe(db_valorehealth)
         except Exception as e:
-            st.error(f"Riprovare. Valori del cuore eossugeno non presenti nel db\nInserisci e riprova\n{e}")
+            st.error(f"Riprovare. Valori cuore e ossigeno non presenti nel db\nInserisci e riprova\n{e}")
      
     elif view_diario == "PDF Completo":
 
@@ -421,6 +439,3 @@ elif insert_diario == "HealthSmart":
             nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
             ws_healthsmart.append_row(nuovoHealth)
             st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
-
-
-
