@@ -36,27 +36,67 @@ db_healthsmart= ws_to_df(ws_healthsmart)
 
 def genera_pdf(df_combined):
     pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.add_page()
+    pdf.add_page("landscape")
     pdf.set_font("Arial", size=12)
 
     pdf.cell(200, 10, txt="Report Diario", ln=True, align="C")
     pdf.ln(10)
 
-    col_width = pdf.w / (len(df_combined.columns) + 1)
+    pdf.set_fill_color(255, 100, 0)  # Colore di riempimento intestazione
+    pdf.set_text_color(255, 255, 255)  # Colore testo intestazione
+    col_widths = [20, 25, 25, 15, 45, 35, 25, 25, 25, 15]  # Larghezze delle colonne
+    headers = ["Data", "glicemia", "Pasto", "orario", "note", "Alimento", "TotPeso", "TotCho", "TotKcal", "Insulina"]
 
-    # Intestazioni
-    pdf.set_font("Arial", style="B", size=10)
-    for col in df_combined.columns:
-        pdf.cell(col_width, 10, str(col), border=1, align="C")
-    pdf.ln()
+    # Raggruppa per data
+    gruppi = df_combined.groupby("data")
 
-    # Righe
-    pdf.set_font("Arial", size=9)
-    for i in range(len(df_combined)):
-        for col in df_combined.columns:
-            val = str(df_combined.iloc[i][col])
-            pdf.cell(col_width, 10, val, border=1, align="C")
+    for data, gruppo in gruppi:
+        pdf.set_font("Arial", "B", 12)
+        pdf.set_text_color(0, 0, 128)
+        pdf.cell(0, 10, f"Data: {data}", ln=True)
+        pdf.set_text_color(0, 0, 0)
+        # Aggiungi i dati alla tabella
+        pdf.set_font("Helvetica", "", 5)
+        pdf.set_text_color(0, 0, 0)  # Colore testo dati
+        pdf.set_fill_color(224, 235, 255)  # Colore delle celle alternate
+        # Intestazioni
+        pdf.set_font("Arial", style="B", size=10)
+        for i, header in enumerate(headers):
+            pdf.cell(col_widths[i], 5, header, border="L", align="C", fill=True)
         pdf.ln()
+
+    
+        # Riga dei dati
+        pdf.set_font("Helvetica", size=8)
+        pdf.set_text_color(0, 0, 0)
+        fill = False
+        gruppo["totKcal"] = pd.to_numeric(gruppo["totKcal"], errors="coerce")
+        gruppo["glicemia"] = pd.to_numeric(gruppo["glicemia"], errors="coerce")
+
+        totKcal= gruppo["totKcal"].sum()
+
+        mediaGlicemia = gruppo["glicemia"].mean()
+
+        emogloglicata = (mediaGlicemia + 47.6) / 27.6 if not np.isnan(mediaGlicemia) else 0
+        
+        for idx, record in gruppo.iterrows():
+            pdf.cell(col_widths[0], 8, str(record.get("data", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[1], 8, str(record.get("glicemia", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[2], 8, str(record.get("tipoPasto", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[3], 8, str(record.get("orario", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[4], 8, str(record.get("note", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[5], 8, str(record.get("nomeAlimento", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[6], 8, str(record.get("totPeso", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[7], 8, str(record.get("totCho", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[8], 8, str(record.get("totKcal", "")), border=1, align="C", fill=fill)
+            pdf.cell(col_widths[9], 8, str(record.get("insulina", "")), border=1, align="C", fill=fill)
+            pdf.ln()
+            fill = not fill
+        
+        pdf.cell(col_widths[6], 8, f"Tot Kcal: {totKcal:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[1], 8, f"M. Glicemia: {mediaGlicemia:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[0], 8, f"HBA1C: {emogloglicata:.0f}",border=1,align="L",fill=fill)
+        pdf.ln(10)
 
     return bytes(pdf.output(dest="S"))
 
