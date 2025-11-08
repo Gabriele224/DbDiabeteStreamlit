@@ -71,9 +71,18 @@ def genera_pdf(df_combined):
         pdf.set_text_color(0, 0, 0)
         fill = False
         gruppo["totKcal"] = pd.to_numeric(gruppo["totKcal"], errors="coerce")
+        gruppo["totPeso"] = pd.to_numeric(gruppo["totPeso"], errors="coerce")
+        gruppo["totCho"] = pd.to_numeric(gruppo["totCho"], errors="coerce")
+        gruppo["insulina"]= pd.to_numeric(gruppo["insulina"], errors="coerce")
         gruppo["glicemia"] = pd.to_numeric(gruppo["glicemia"], errors="coerce")
 
         totKcal= gruppo["totKcal"].sum()
+
+        totPeso= gruppo["totPeso"].sum()
+
+        totCho= gruppo["totCho"].sum()
+        
+        totInsulina=gruppo["insulina"].sum()
 
         mediaGlicemia = gruppo["glicemia"].mean()
 
@@ -94,6 +103,9 @@ def genera_pdf(df_combined):
             fill = not fill
         
         pdf.cell(col_widths[6], 8, f"Tot Kcal: {totKcal:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[7], 8, f"Tot Peso: {totPeso:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[8], 8, f"Tot Cho: {totCho:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[9], 8, f"Tot Insulina: {totInsulina:.0f}",border=1,align="L",fill=fill)
         pdf.cell(col_widths[1], 8, f"M. Glicemia: {mediaGlicemia:.0f}",border=1,align="L",fill=fill)
         pdf.cell(col_widths[0], 8, f"HBA1C: {emogloglicata:.0f}",border=1,align="L",fill=fill)
         pdf.ln(10)
