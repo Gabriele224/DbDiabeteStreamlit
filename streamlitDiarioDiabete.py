@@ -69,6 +69,7 @@ def genera_pdf(df_combined):
         # Riga dei dati
         pdf.set_font("Helvetica", size=8)
         pdf.set_text_color(0, 0, 0)
+        pdf.set_fill_color(224, 235, 255)  # Colore delle celle alternate
         fill = False
         gruppo["totKcal"] = pd.to_numeric(gruppo["totKcal"], errors="coerce")
         gruppo["totPeso"] = pd.to_numeric(gruppo["totPeso"], errors="coerce")
@@ -105,8 +106,8 @@ def genera_pdf(df_combined):
         pdf.cell(col_widths[6], 8, f"Tot Kcal: {totKcal:.0f}",border=1,align="L",fill=fill)
         pdf.cell(col_widths[7], 8, f"Tot Peso: {totPeso:.0f}",border=1,align="L",fill=fill)
         pdf.cell(col_widths[8], 8, f"Tot Cho: {totCho:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[9], 8, f"Tot Insulina: {totInsulina:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[1], 8, f"M. Glicemia: {mediaGlicemia:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[9], 8, f"Insulina: {totInsulina:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[1], 8, f"M.Glicemia: {mediaGlicemia:.0f}",border=1,align="L",fill=fill)
         pdf.cell(col_widths[0], 8, f"HBA1C: {emogloglicata:.0f}",border=1,align="L",fill=fill)
         pdf.ln(10)
 
