@@ -13,14 +13,16 @@ gc = gspread.service_account_from_dict(sa_info)
 SPREADSHEET_ID_UTENTE="1M2bQ9bHz9zBmeF61frL_26GbuKuWKZM9Hx3DdVk7_IY"    # <--- sostituisci con ID foglio UtenteCentro
 SPREADSHEET_ID_PASTI = "1ntm0KHnKr1-314PXXL3-sRhdkFXjtwjg4QY9k4Kkl78"              # <--- sostituisci con ID foglio DiarioPasti
 SPREADSHEET_ID_ALIMENTO = "1yWr0_ZL8ke1S7QTBsr6hKTw6VLGxXyo8IdzaNYpraYc"     # <--- sostituisci con ID foglio AlimentoConsumato
-SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio DatiCorporei
+SPREADSHEET_ID_PESO = "1IFJOXtK4M4e4r5OET1DE7XlisBauhiAbiCjat2sAE5Y"             # <--- sostituisci con ID foglio Peso E Massa
 SPREADSHEET_ID_HEALTHSMART= "1N0sdRsoC-EB5hYBfjjQ0Qil59j1LJ56R8B_wjTJ1SHU"  # ID foglio HealthSmart
+SPREADSHEET_ID_PROFILEMICRO= "1uwNQYab5Y-i9X30dYw9wlQp4HLkxJ3Dzt6ruTxYBKvI"  # ID foglio ProfileMicro
 
 ws_utente= gc.open_by_key(SPREADSHEET_ID_UTENTE).sheet1
 ws_pasti = gc.open_by_key(SPREADSHEET_ID_PASTI).sheet1
 ws_alimento = gc.open_by_key(SPREADSHEET_ID_ALIMENTO).sheet1
 ws_peso = gc.open_by_key(SPREADSHEET_ID_PESO).sheet1
 ws_healthsmart= gc.open_by_key(SPREADSHEET_ID_HEALTHSMART).sheet1
+ws_profilemicro= gc.open_by_key(SPREADSHEET_ID_PROFILEMICRO).sheet1
 
 # Funzione helper per leggere worksheet → DataFrame
 def ws_to_df(ws):
@@ -33,6 +35,7 @@ db_Pasto = ws_to_df(ws_pasti)
 db_alimento = ws_to_df(ws_alimento)
 db_pesoPersonale = ws_to_df(ws_peso)
 db_healthsmart= ws_to_df(ws_healthsmart)
+db_profile= ws_to_df(ws_profilemicro)
 
 def genera_pdf(df_combined):
     pdf = FPDF(orientation="L", unit="mm", format="A4")
@@ -103,12 +106,12 @@ def genera_pdf(df_combined):
             pdf.ln()
             fill = not fill
         
-        pdf.cell(col_widths[6], 8, f"Tot Kcal: {totKcal:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[7], 8, f"Tot Peso: {totPeso:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[8], 8, f"Tot Cho: {totCho:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[9], 8, f"Insulina: {totInsulina:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[1], 8, f"M.Glicemia: {mediaGlicemia:.0f}",border=1,align="L",fill=fill)
-        pdf.cell(col_widths[0], 8, f"HBA1C: {emogloglicata:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[6], 8, f"Tot Kcal:{totKcal:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[7], 8, f"Tot Peso:{totPeso:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[8], 8, f"Tot Cho:{totCho:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[9], 8, f"Insulina:{totInsulina:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[1], 8, f"M.Glicemia:{mediaGlicemia:.0f}",border=1,align="L",fill=fill)
+        pdf.cell(col_widths[0], 8, f"HBA1C:{emogloglicata:.0f}",border=1,align="L",fill=fill)
         pdf.ln(10)
 
     return bytes(pdf.output(dest="S"))
@@ -423,12 +426,20 @@ elif insert_diario == "Alimento":
         
 
         try:
-            db_Pasto["id_pasto"] = db_Pasto["id_pasto"].astype(str)
-            db_Pasto["data"] = db_Pasto["data"].astype(str)
-            opzioni_pasto = db_Pasto["id_pasto"] + " - " + db_Pasto["tipoPasto"] + " (" + db_Pasto["data"] + ")"
-            scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
-            id_raw = scelta.split(" - ")[0]
-            id_pasto_sel = int(float(id_raw))
+            data_scelta = st.date_input("Seleziona data pasto")
+	    data_scelta = data_scelta.strftime("%Y-%m-%d")
+
+            db_filtrato = db_Pasto[db_Pasto["data"] == data_scelta]
+
+            if db_filtrato.empty:
+               st.warning("⚠️ Nessun pasto per la data selezionata.")
+            else:
+                opzioni_pasto = (
+                  db_filtrato["id_pasto"].astype(str)
+                  + " - " + db_filtrato["tipoPasto"]
+                  + " (" + db_filtrato["data"] + ")"
+                )
+
 
             # esempio per DiarioPasti
             if len(db_alimento) == 0:
@@ -492,3 +503,29 @@ elif insert_diario == "HealthSmart":
             nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
             ws_healthsmart.append_row(nuovoHealth)
             st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+
+st.title("DashBoard Control-IQ")
+insert_prova = st.selectbox("Inserimento nel Db\n",["ProfileMicro","DiarioMicro"])
+if insert_prova == "ProfileMicro":
+
+    with st.form("form_profile"):
+        
+        basale = st.number_type("Basale")
+	fsi = st.number_input("FSI")
+        ic= st.number_input("IC")
+        target= st.number_input("Target")
+        username=st.text_input("Username")
+	ora=st.text_input("Orario Rapporto")
+	data = st.date_input("Data")
+
+        # esempio per ProfileMicro
+        if len(db_profile) == 0:
+            id_profile = 1
+        else:
+            id_profile = max(db_profile["id_profile"].astype(int)) + 1
+
+        invia_profile = st.form_submit_button("Salva Profile")
+        if invia_profile:
+            nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
+            ws_profilemicro.append_row(nuovoProfilo)
+            st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
