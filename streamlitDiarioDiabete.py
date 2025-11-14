@@ -427,8 +427,7 @@ elif insert_diario == "Alimento":
 
         try:
             data_scelta = st.date_input("Seleziona data pasto")
-	        data_scelta = data_scelta.strftime("%Y-%m-%d")
-
+            data_scelta = data_scelta.strftime("%Y-%m-%d")
             db_filtrato = db_Pasto[db_Pasto["data"] == data_scelta]
 
             if db_filtrato.empty:
@@ -439,7 +438,8 @@ elif insert_diario == "Alimento":
                   + " - " + db_filtrato["tipoPasto"]
                   + " (" + db_filtrato["data"] + ")"
                 )
-
+            scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
+            id_pasto_sel = int(scelta.split(" - ")[0])
 
             # esempio per DiarioPasti
             if len(db_alimento) == 0:
@@ -511,12 +511,12 @@ if insert_prova == "ProfileMicro":
     with st.form("form_profile"):
         
         basale = st.number_type("Basale")
-		fsi = st.number_input("FSI")
+        fsi = st.number_input("FSI")
         ic= st.number_input("IC")
         target= st.number_input("Target")
         username=st.text_input("Username")
-		ora=st.text_input("Orario Rapporto")
-		data = st.date_input("Data")
+        ora=st.text_input("Orario Rapporto")
+        data = st.date_input("Data")
 
         # esempio per ProfileMicro
         if len(db_profile) == 0:
