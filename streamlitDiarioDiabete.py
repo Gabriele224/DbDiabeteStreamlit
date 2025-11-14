@@ -510,7 +510,7 @@ if insert_prova == "ProfileMicro":
 
     with st.form("form_profile"):
         
-        basale = st.number_type("Basale")
+        basale = st.number_input("Basale")
         fsi = st.number_input("FSI")
         ic= st.number_input("IC")
         target= st.number_input("Target")
@@ -529,3 +529,4 @@ if insert_prova == "ProfileMicro":
             nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
             ws_profilemicro.append_row(nuovoProfilo)
             st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
+
