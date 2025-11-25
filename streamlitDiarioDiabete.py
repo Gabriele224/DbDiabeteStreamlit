@@ -403,18 +403,32 @@ elif insert_diario == "DiarioPasto":
         orario = st.text_input("Orario")
         data = st.date_input("Data")
         note = st.text_input("Note")
+        
+        try:
+            
+            # Seleziona utente da lista utenti reali
+            if db_utente.empty:
+                st.warning("⚠️ Nessun utente registrato.")
+                st.stop()
+            
+            lista_utenti = db_utente["username"].tolist()
+            username_sel = st.selectbox("Seleziona Username", lista_utenti)
 
-        # esempio per DiarioPasti
-        if len(db_Pasto) == 0:
-            id_pasto = 1
-        else:
-            id_pasto = max(db_Pasto["id_pasto"].astype(int)) + 1
+            # esempio per DiarioPasti
+            if len(db_Pasto) == 0:
+                id_pasto = 1
+            else:
+                id_pasto = max(db_Pasto["id_pasto"].astype(int)) + 1
 
-        invia = st.form_submit_button("Salva Pasto")
-        if invia:
-            nuovoPasto = [id_pasto, glicemia, tipoPasto, orario, data.strftime("%Y-%m-%d"), note]
-            ws_pasti.append_row(nuovoPasto)
-            st.success(f"✅ Nuovo pasto salvato!\n{nuovoPasto}")
+
+            invia = st.form_submit_button("Salva Pasto")
+            if invia:
+                nuovoPasto = [id_pasto, glicemia, tipoPasto, orario, data.strftime("%Y-%m-%d"), note, username_sel]
+                ws_pasti.append_row(nuovoPasto)
+                st.success(f"✅ Nuovo pasto salvato!\n{nuovoPasto}")
+
+        except Exception as e:
+            st.error(f"Username Mancante.\nAggiungere prima l'user, la tabella è ancora vuota!\n{e}")
 
 elif insert_diario == "Alimento":
     with st.form("form_alimento"):
@@ -432,12 +446,13 @@ elif insert_diario == "Alimento":
 
             if db_filtrato.empty:
                st.warning("⚠️ Nessun pasto per la data selezionata.")
-            else:
-                opzioni_pasto = (
-                  db_filtrato["id_pasto"].astype(str)
-                  + " - " + db_filtrato["tipoPasto"]
-                  + " (" + db_filtrato["data"] + ")"
-                )
+            
+            opzioni_pasto = (
+                db_filtrato["id_pasto"].astype(str)
+                + " - " + db_filtrato["tipoPasto"]
+                + " (" + db_filtrato["data"] + ")"
+                + " (" + db_filtrato["usernameId"] + ")"
+            )
             scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
             id_pasto_sel = int(scelta.split(" - ")[0])
 
@@ -529,4 +544,3 @@ if insert_prova == "ProfileMicro":
             nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
             ws_profilemicro.append_row(nuovoProfilo)
             st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
-
