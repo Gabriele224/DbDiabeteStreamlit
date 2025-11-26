@@ -485,6 +485,14 @@ elif insert_diario == "PesoPersonale":
         except ZeroDivisionError as e:
             st.error(f"Impossibile dividere per zero!\n{e}")
 
+        # Seleziona utente da lista utenti reali
+        if db_utente.empty:
+            st.warning("⚠️ Nessun utente registrato.")
+            st.stop()
+            
+        lista_utenti = db_utente["username"].tolist()
+        username_sel = st.selectbox("Seleziona Username", lista_utenti)
+
         if len(db_pesoPersonale) == 0:
             id_peso = 1
         else:
@@ -492,7 +500,7 @@ elif insert_diario == "PesoPersonale":
 
         invia_PesoPersonale = st.form_submit_button("Salva Peso")
         if invia_PesoPersonale:
-            nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d")]
+            nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d"), username_sel]
             ws_peso.append_row(nuovoPeso)
             st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
 
@@ -505,19 +513,28 @@ elif insert_diario == "HealthSmart":
         oxygen= st.number_input("Ossigeno")
         stress= st.text_input("Stress")
         note = st.text_input("Note")
-        username=st.text_input("Username")
+        
+        try:
+            # Seleziona utente da lista utenti reali
+            if db_utente.empty:
+                st.warning("⚠️ Nessun utente registrato.")
+                st.stop()
+            
+            lista_utenti = db_utente["username"].tolist()
+            username_sel = st.selectbox("Seleziona Username", lista_utenti)
+            # esempio per healthsmart
+            if len(db_healthsmart) == 0:
+                id_health = 1
+            else:
+                id_health = max(db_healthsmart["id_health"].astype(int)) + 1
 
-        # esempio per DiarioPasti
-        if len(db_healthsmart) == 0:
-            id_health = 1
-        else:
-            id_health = max(db_healthsmart["id_health"].astype(int)) + 1
-
-        invia_healthsmart = st.form_submit_button("Salva Health")
-        if invia_healthsmart:
-            nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username]
-            ws_healthsmart.append_row(nuovoHealth)
-            st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+            invia_healthsmart = st.form_submit_button("Salva Health")
+            if invia_healthsmart:
+                nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username_sel]
+                ws_healthsmart.append_row(nuovoHealth)
+                st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+        except Exception as e:
+            st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
 
 st.title("DashBoard Control-IQ")
 insert_prova = st.selectbox("Inserimento nel Db\n",["ProfileMicro","DiarioMicro"])
