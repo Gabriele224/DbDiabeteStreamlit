@@ -171,7 +171,7 @@ else:
 # --------------------- INSERIMENTO DATI ---------------------
 
 st.subheader("Aggiungere Le Informazioni nel Db")
-insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale","HealthSmart"])
+insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale","HealthSmart","PROFILEMICRO"])
 
 if insert_diario == "UtenteCentro":
 
@@ -339,9 +339,7 @@ elif insert_diario == "HealthSmart":
         except Exception as e:
             st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
 
-st.title("DashBoard Control-IQ")
-insert_prova = st.selectbox("Inserimento nel Db\n",["ProfileMicro","DiarioMicro"])
-if insert_prova == "ProfileMicro":
+elif insert_diario == "PROFILEMICRO":
 
     with st.form("form_profile"):
         
@@ -353,14 +351,18 @@ if insert_prova == "ProfileMicro":
         ora=st.text_input("Orario Rapporto")
         data = st.date_input("Data")
 
+        try:
         # esempio per ProfileMicro
-        if len(db_profile) == 0:
-            id_profile = 1
-        else:
-            id_profile = max(db_profile["id_profile"].astype(int)) + 1
+            if len(db_profile) == 0:
+                id_profile = 1
+            else:
+                id_profile = max(db_profile["id_profile"].astype(int)) + 1
 
-        invia_profile = st.form_submit_button("Salva Profile")
-        if invia_profile:
-            nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
-            ws_profilemicro.append_row(nuovoProfilo)
-            st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
+            invia_profile = st.form_submit_button("Salva Profile")
+            if invia_profile:
+                nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
+                ws_profilemicro.append_row(nuovoProfilo)
+                st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
+            
+        except Exception as e:
+            st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
