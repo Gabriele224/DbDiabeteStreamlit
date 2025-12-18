@@ -170,124 +170,152 @@ else:
     st.success("Nessun errore")
 # --------------------- INSERIMENTO DATI ---------------------
 
-st.subheader("Aggiungere Le Informazioni nel Db")
-insert_diario = st.selectbox("Inserimento nel Db\n",["UtenteCentro","DiarioPasto","Alimento","PesoPersonale","HealthSmart","PROFILEMICRO"])
+st.subheader("Aggiungere L'UtenteCentro Nel DB")
 
-if insert_diario == "UtenteCentro":
+with st.form("form_utente"):
+    username = st.text_input("Username")
+    NomeUtente = st.text_input("NomeUtente")
+    CognomeUtente = st.text_input("Cognome")
+    dataNascita = st.date_input("Data")
+    CittaUtente= st.text_input("CittaUtente")
+    CfUtente= st.text_input("CfUtente")
+    CentroDiabetologico= st.text_input("CentroDiabetologico")
 
-    with st.form("form_utente"):
-        username = st.text_input("Username")
-        NomeUtente = st.text_input("NomeUtente")
-        CognomeUtente = st.text_input("Cognome")
-        dataNascita = st.date_input("Data")
-        CittaUtente= st.text_input("CittaUtente")
-        CfUtente= st.text_input("CfUtente")
-        CentroDiabetologico= st.text_input("CentroDiabetologico")
+    try:
 
-        try:
+        invia_utente = st.form_submit_button("Salva Utente")
+        if invia_utente:
+            nuovoUtente = [username, NomeUtente, CognomeUtente, dataNascita.strftime("%Y-%m-%d"), CittaUtente, CfUtente, CentroDiabetologico]
+            ws_utente.append_row(nuovoUtente)
+            st.success(f"✅ Nuovo Utente salvato!\n{nuovoUtente}")
+            
+    except Exception as e:
+        st.error(f"Utente Mancante.\nAggiungere prima l'utente la tabella è ancora vuota!\n{e}")
 
-            invia_utente = st.form_submit_button("Salva Utente")
-            if invia_utente:
-                nuovoUtente = [username, NomeUtente, CognomeUtente, dataNascita.strftime("%Y-%m-%d"), CittaUtente, CfUtente, CentroDiabetologico]
-                ws_utente.append_row(nuovoUtente)
-                st.success(f"✅ Nuovo Utente salvato!\n{nuovoUtente}")
-           
-        except Exception as e:
-            st.error(f"Utente Mancante.\nAggiungere prima l'utente la tabella è ancora vuota!\n{e}")
+st.subheader("Aggiungere Il Pasto Nel DB")
 
-elif insert_diario == "DiarioPasto":
-    with st.form("form_pasto"):
-        glicemia = st.number_input("Glicemia", max_value=1000)
-        tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1",
-                                              "DopoSpuntino1","Pranzo","DopoPranzo",
-                                              "Spuntino2","DopoSpuntino2","PrimaDiCena",
-                                              "Cena","DopoCena","Notte"])
-        orario = st.text_input("Orario")
-        data = st.date_input("Data")
-        note = st.text_input("Note")
+with st.form("form_pasto"):
+    glicemia = st.number_input("Glicemia", max_value=1000)
+    tipoPasto = st.selectbox("TipoPasto",["PrimaDiColazione","Colazione","DopoColazione","Spuntino1","DopoSpuntino1","Pranzo","DopoPranzo","Spuntino2","DopoSpuntino2","PrimaDiCena","Cena","DopoCena","Notte"])
+    orario = st.text_input("Orario")
+    data = st.date_input("Data")
+    note = st.text_input("Note")
         
-        try:
+    try:
             
-            # Seleziona utente da lista utenti reali
-            if db_utente.empty:
-                st.warning("⚠️ Nessun utente registrato.")
-                st.stop()
+        # Seleziona utente da lista utenti reali
+        if db_utente.empty:
+            st.warning("⚠️ Nessun utente registrato.")
+            st.stop()
             
-            lista_utenti = db_utente["username"].dropna().astype(str).tolist()
-            username_sel = st.selectbox("Seleziona Username", lista_utenti)
+        lista_utenti = db_utente["username"].dropna().astype(str).tolist()
+        username_sel = st.selectbox("Seleziona Username", lista_utenti)
 
-            # esempio per DiarioPasti
-            if len(db_Pasto) == 0:
-                id_pasto = 1
-            else:
-                id_pasto = max(db_Pasto["id_pasto"].astype(int)) + 1
+        # esempio per DiarioPasti
+        if len(db_Pasto) == 0:
+            id_pasto = 1
+        else:
+            id_pasto = max(db_Pasto["id_pasto"].astype(int)) + 1
 
 
-            invia = st.form_submit_button("Salva Pasto")
-            if invia:
-                nuovoPasto = [id_pasto, glicemia, tipoPasto, orario, data.strftime("%Y-%m-%d"), note, username_sel]
-                ws_pasti.append_row(nuovoPasto)
-                st.success(f"✅ Nuovo pasto salvato!\n{nuovoPasto}")
+        invia = st.form_submit_button("Salva Pasto")
+        if invia:
+            nuovoPasto = [id_pasto, glicemia, tipoPasto, orario, data.strftime("%Y-%m-%d"), note, username_sel]
+            ws_pasti.append_row(nuovoPasto)
+            st.success(f"✅ Nuovo pasto salvato!\n{nuovoPasto}")
 
-        except Exception as e:
-            st.error(f"Username Mancante.\nAggiungere prima l'user, la tabella è ancora vuota!\n{e}")
+    except Exception as e:
+        st.error(f"Username Mancante.\nAggiungere prima l'user, la tabella è ancora vuota!\n{e}")
 
-elif insert_diario == "Alimento":
-    with st.form("form_alimento"):
-        nomeAlimento = st.text_input("Alimento")
-        totPeso = st.number_input("TotPeso",max_value=1000.0,format="%.2f")
-        totCho = st.number_input("TotCho",max_value=1000.0,format="%.2f")
-        totKcal = st.number_input("TotKcal",max_value=1000.0,format="%.2f")
-        insulina = st.number_input("Insulina",max_value=100.0,format="%.2f")
+st.subheader("Aggiungere L'Alimento Nel DB")
+    
+with st.form("form_alimento"):
+    nomeAlimento = st.text_input("Alimento")
+    totPeso = st.number_input("TotPeso",max_value=1000.0,format="%.2f")
+    totCho = st.number_input("TotCho",max_value=1000.0,format="%.2f")
+    totKcal = st.number_input("TotKcal",max_value=1000.0,format="%.2f")
+    insulina = st.number_input("Insulina",max_value=100.0,format="%.2f")
         
 
-        try:
-            data_scelta = st.date_input("Seleziona data pasto")
-            data_scelta = data_scelta.strftime("%Y-%m-%d")
-            db_filtrato = db_Pasto[db_Pasto["data"] == data_scelta]
+    try:
+        data_scelta = st.date_input("Seleziona data pasto")
+        data_scelta = data_scelta.strftime("%Y-%m-%d")
+        db_filtrato = db_Pasto[db_Pasto["data"] == data_scelta]
 
-            if db_filtrato.empty:
-               st.warning("⚠️ Nessun pasto per la data selezionata.")
+        if db_filtrato.empty:
+            st.warning("⚠️ Nessun pasto per la data selezionata.")
             
-            opzioni_pasto = (
-                    db_filtrato["id_pasto"].astype(str)
-                    + " - " + db_filtrato["tipoPasto"].astype(str)
-                    + " (" + db_filtrato["data"].astype(str) + ")"
-                    + " (" + db_filtrato["usernameId"].astype(str) + ")"
-            )
+        opzioni_pasto = (
+                db_filtrato["id_pasto"].astype(str)
+                + " - " + db_filtrato["tipoPasto"].astype(str)
+                + " (" + db_filtrato["data"].astype(str) + ")"
+                + " (" + db_filtrato["usernameId"].astype(str) + ")"
+        )
 
-            scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
-            id_pasto_sel = int(scelta.split(" - ")[0])
+        scelta = st.selectbox("Scegli il pasto", opzioni_pasto)
+        id_pasto_sel = int(scelta.split(" - ")[0])
 
-            # esempio per DiarioPasti
-            if len(db_alimento) == 0:
-                id_alimento = 1
-            else:
-                id_alimento = max(db_alimento["id_alimento"].astype(int)) + 1
+        # esempio per DiarioPasti
+        if len(db_alimento) == 0:
+            id_alimento = 1
+        else:
+            id_alimento = max(db_alimento["id_alimento"].astype(int)) + 1
             
-            invia_alimento = st.form_submit_button("Salva Alimento")
-            if invia_alimento:
-                nuovoAlimento = [id_alimento, nomeAlimento, totPeso, totCho, totKcal, insulina, id_pasto_sel]
-                ws_alimento.append_row(nuovoAlimento)
-                st.success(f"✅ Nuovo alimento salvato!\n{nuovoAlimento}")
-           
-        except Exception as e:
-            st.error(f"Pasto Mancante.\nAggiungere prima il pasto la tabella è ancora vuota!\n{e}")
+        invia_alimento = st.form_submit_button("Salva Alimento")
+        if invia_alimento:
+            nuovoAlimento = [id_alimento, nomeAlimento, totPeso, totCho, totKcal, insulina, id_pasto_sel]
+            ws_alimento.append_row(nuovoAlimento)
+            st.success(f"✅ Nuovo alimento salvato!\n{nuovoAlimento}")
+            
+    except Exception as e:
+        st.error(f"Pasto Mancante.\nAggiungere prima il pasto la tabella è ancora vuota!\n{e}")
 
-elif insert_diario == "PesoPersonale":
-    with st.form("form_pesoPersonale"):
-        pesoPersonale = st.number_input("Peso",max_value=100.0,format="%.2f")
-        altezza = st.number_input("Altezza",max_value=2.40,format="%.2f")
-        data = st.date_input("Data")
+st.subheader("Aggiungere I Dati Peso e Altezza Nel DB")
 
-        try:
-            altezza=float(altezza)
-            massaCorporea= pesoPersonale / (altezza ** 2)
-            st.success(f"Massa Corporea Calcolata:{massaCorporea:.2f}")
+with st.form("form_pesoPersonale"):
+    pesoPersonale = st.number_input("Peso",max_value=100.0,format="%.2f")
+    altezza = st.number_input("Altezza",max_value=2.40,format="%.2f")
+    data = st.date_input("Data")
 
-        except ZeroDivisionError as e:
-            st.error(f"Impossibile dividere per zero!\n{e}")
+    try:
+        altezza=float(altezza)
+        massaCorporea= pesoPersonale / (altezza ** 2)
+        st.success(f"Massa Corporea Calcolata:{massaCorporea:.2f}")
 
+    except ZeroDivisionError as e:
+        st.error(f"Impossibile dividere per zero!\n{e}")
+
+    # Seleziona utente da lista utenti reali
+    if db_utente.empty:
+        st.warning("⚠️ Nessun utente registrato.")
+        st.stop()
+            
+    lista_utenti = db_utente["username"].tolist()
+    username_sel = st.selectbox("Seleziona Username", lista_utenti)
+
+    if len(db_pesoPersonale) == 0:
+        id_peso = 1
+    else:
+        id_peso = max(db_pesoPersonale["id_peso"].astype(int)) + 1
+
+    invia_PesoPersonale = st.form_submit_button("Salva Peso")
+    if invia_PesoPersonale:
+        nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d"), username_sel]
+        ws_peso.append_row(nuovoPeso)
+        st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+
+st.subheader("Aggiungere I Valori Smartwatch - HealthSmart")
+
+with st.form("form_healthsmart"):
+        
+    ora = st.text_input("Orario")
+    data = st.date_input("Data")
+    health = st.number_input("Cuore",max_value=1000,format="%.2f")
+    oxygen= st.number_input("Ossigeno",max_value=1000,format="%.2f")
+    stress= st.text_input("Stress")
+    note = st.text_input("Note")
+        
+    try:
         # Seleziona utente da lista utenti reali
         if db_utente.empty:
             st.warning("⚠️ Nessun utente registrato.")
@@ -295,74 +323,44 @@ elif insert_diario == "PesoPersonale":
             
         lista_utenti = db_utente["username"].tolist()
         username_sel = st.selectbox("Seleziona Username", lista_utenti)
-
-        if len(db_pesoPersonale) == 0:
-            id_peso = 1
+        # esempio per healthsmart
+        if len(db_healthsmart) == 0:
+            id_health = 1
         else:
-            id_peso = max(db_pesoPersonale["id_peso"].astype(int)) + 1
+            id_health = max(db_healthsmart["id_health"].astype(int)) + 1
 
-        invia_PesoPersonale = st.form_submit_button("Salva Peso")
-        if invia_PesoPersonale:
-            nuovoPeso = [id_peso, pesoPersonale, massaCorporea, data.strftime("%Y-%m-%d"), username_sel]
-            ws_peso.append_row(nuovoPeso)
-            st.success(f"✅ Nuovo peso salvato!\n{nuovoPeso}")
+        invia_healthsmart = st.form_submit_button("Salva Health")
+        if invia_healthsmart:
+            nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username_sel]
+            ws_healthsmart.append_row(nuovoHealth)
+            st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
+    except Exception as e:
+        st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
 
-elif insert_diario == "HealthSmart":
-    with st.form("form_healthsmart"):
+st.subheader("Aggiungere Il Profile del Micro")
+
+with st.form("form_profile"):
         
-        ora = st.text_input("Orario")
-        data = st.date_input("Data")
-        health = st.number_input("Cuore",max_value=1000,format="%.2f")
-        oxygen= st.number_input("Ossigeno",max_value=1000,format="%.2f")
-        stress= st.text_input("Stress")
-        note = st.text_input("Note")
-        
-        try:
-            # Seleziona utente da lista utenti reali
-            if db_utente.empty:
-                st.warning("⚠️ Nessun utente registrato.")
-                st.stop()
+    basale = st.number_input("Basale")
+    fsi = st.number_input("FSI")
+    ic= st.number_input("IC")
+    target= st.number_input("Target")
+    username=st.text_input("Username")
+    ora=st.text_input("Orario Rapporto")
+    data = st.date_input("Data")
+
+    try:
+    # esempio per ProfileMicro
+        if len(db_profile) == 0:
+            id_profile = 1
+        else:
+            id_profile = max(db_profile["id_profile"].astype(int)) + 1
+
+        invia_profile = st.form_submit_button("Salva Profile")
+        if invia_profile:
+            nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
+            ws_profilemicro.append_row(nuovoProfilo)
+            st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
             
-            lista_utenti = db_utente["username"].tolist()
-            username_sel = st.selectbox("Seleziona Username", lista_utenti)
-            # esempio per healthsmart
-            if len(db_healthsmart) == 0:
-                id_health = 1
-            else:
-                id_health = max(db_healthsmart["id_health"].astype(int)) + 1
-
-            invia_healthsmart = st.form_submit_button("Salva Health")
-            if invia_healthsmart:
-                nuovoHealth = [id_health, ora, data.strftime("%Y-%m-%d"), health, oxygen, stress, note, username_sel]
-                ws_healthsmart.append_row(nuovoHealth)
-                st.success(f"✅ Nuovo HealthSmart salvato!\n{nuovoHealth}")
-        except Exception as e:
-            st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
-
-elif insert_diario == "PROFILEMICRO":
-
-    with st.form("form_profile"):
-        
-        basale = st.number_input("Basale")
-        fsi = st.number_input("FSI")
-        ic= st.number_input("IC")
-        target= st.number_input("Target")
-        username=st.text_input("Username")
-        ora=st.text_input("Orario Rapporto")
-        data = st.date_input("Data")
-
-        try:
-        # esempio per ProfileMicro
-            if len(db_profile) == 0:
-                id_profile = 1
-            else:
-                id_profile = max(db_profile["id_profile"].astype(int)) + 1
-
-            invia_profile = st.form_submit_button("Salva Profile")
-            if invia_profile:
-                nuovoProfilo = [id_profile, basale, fsi, ic, target, username, ora, data.strftime("%Y-%m-%d")]
-                ws_profilemicro.append_row(nuovoProfilo)
-                st.success(f"✅ Nuovo Profile Micro salvato!\n{nuovoProfilo}")
-            
-        except Exception as e:
-            st.error(f"Username Mancante.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
+    except Exception as e:
+        st.error(f"Error.\nAggiungere prima i valori la tabella è ancora vuota!\n{e}")
